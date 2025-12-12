@@ -672,3 +672,69 @@ footer {
   padding: 15px;
   font-weight: bold;
 }
+
+/* Announcements management modal and list */
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.announcement-item {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffffff, #fbfbfb);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.announcement-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.announcement-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.announcement-form input[type="text"],
+.announcement-form input[type="datetime-local"],
+.announcement-form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.announcement-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.manage-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.btn-secondary {
+  background-color: var(--border);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background-color: var(--error);
+  color: white;
+}
+
+.announcement-banner.hidden {
+  display: none !important;
+}
