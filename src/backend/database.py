@@ -4,12 +4,15 @@ MongoDB database configuration and setup for Mergington High School API
 
 from pymongo import MongoClient
 from argon2 import PasswordHasher, exceptions as argon2_exceptions
+from datetime import datetime, timezone
+from bson.objectid import ObjectId
 
 # Connect to MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['mergington_high']
 activities_collection = db['activities']
 teachers_collection = db['teachers']
+announcements_collection = db['announcements']
 
 # Methods
 
@@ -50,6 +53,93 @@ def init_database():
             teachers_collection.insert_one(
                 {"_id": teacher["username"], **teacher})
 
+    # Initialize announcements with an example if empty
+    if announcements_collection.count_documents({}) == 0:
+        # Example announcement: registration open until end of current month
+        now = datetime.now(timezone.utc)
+        end_of_month = datetime(now.year, now.month, 28, 23, 59, 59, tzinfo=timezone.utc)
+        # If month has more than 28 days, set a safe future expiration (approx end of month)
+        announcements_collection.insert_one({
+            "title": "Activity registration open",
+            "message": "Activity registration is open until the end of the month. Don't miss your spot!",
+            "start": None,
+            "expires": end_of_month,
+            "created_at": now
+        })
+
+
+def get_active_announcements(now: datetime = None):
+    """Return announcements where now is between start (if provided) and expires."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    # Query: expires > now and (start is None or start <= now)
+    query = {
+        "expires": {"$gt": now},
+        "$or": [
+            {"start": None},
+            {"start": {"$lte": now}}
+        ]
+    }
+    docs = announcements_collection.find(query).sort("created_at", -1)
+    result = []
+    for d in docs:
+        result.append({
+            "id": str(d.get("_id")),
+            "title": d.get("title"),
+            "message": d.get("message"),
+            "start": d.get("start"),
+            "expires": d.get("expires"),
+            "created_at": d.get("created_at")
+        })
+    return result
+
+
+def list_announcements(include_expired: bool = False):
+    """List announcements; by default excludes expired ones."""
+    now = datetime.now(timezone.utc)
+    if include_expired:
+        docs = announcements_collection.find().sort("created_at", -1)
+    else:
+        docs = announcements_collection.find({"expires": {"$gt": now}}).sort("created_at", -1)
+
+    result = []
+    for d in docs:
+        result.append({
+            "id": str(d.get("_id")),
+            "title": d.get("title"),
+            "message": d.get("message"),
+            "start": d.get("start"),
+            "expires": d.get("expires"),
+            "created_at": d.get("created_at")
+        })
+    return result
+
+
+def create_announcement(title: str, message: str, expires: datetime, start: datetime = None):
+    now = datetime.now(timezone.utc)
+    doc = {
+        "title": title,
+        "message": message,
+        "start": start,
+        "expires": expires,
+        "created_at": now
+    }
+    res = announcements_collection.insert_one(doc)
+    return str(res.inserted_id)
+
+
+def update_announcement(ann_id: str, fields: dict):
+    # Accepts datetime objects for start/expires if present
+    _id = ObjectId(ann_id)
+    announcements_collection.update_one({"_id": _id}, {"$set": fields})
+    return ann_id
+
+
+def delete_announcement(ann_id: str):
+    _id = ObjectId(ann_id)
+    announcements_collection.delete_one({"_id": _id})
+    return ann_id
 
 # Initial database if empty
 initial_activities = {

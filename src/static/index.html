@@ -12,9 +12,7 @@
     />
   </head>
   <body>
-    <div class="announcement-banner">
-  📢 Activity registration is open until the end of the month. Don't miss your spot!
-    </div>
+    <div id="announcement-area" class="announcement-banner hidden"></div>
     <header>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
@@ -23,6 +21,9 @@
           <button id="login-button" class="icon-button">
             <span class="user-icon">👤</span>
             <span>Login</span>
+          </button>
+          <button id="manage-announcements-button" class="icon-button hidden" aria-label="Manage announcements">
+            📣 Announcements
           </button>
           <div id="user-info" class="hidden">
             <span id="display-name"></span>
